@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Détails de l'attaque {{ attack_type }} - Système de Mitigation DDoS{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Détails de l'attaque: {{ attack_type }}</h2>
+        <a href="{{ url_for('visualization.index', time_range=time_range) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour aux visualisations
+        </a>
+    </div>
+    
+    <!-- Sélecteur de plage de temps -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Plage de temps</h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group w-100" role="group">
+                <a href="{{ url_for('visualization.attack_details', type=attack_type, time_range='hour') }}" class="btn btn-outline-primary {% if time_range == 'hour' %}active{% endif %}">Dernière heure</a>
+                <a href="{{ url_for('visualization.attack_details', type=attack_type, time_range='day') }}" class="btn btn-outline-primary {% if time_range == 'day' %}active{% endif %}">Dernier jour</a>
+                <a href="{{ url_for('visualization.attack_details', type=attack_type, time_range='week') }}" class="btn btn-outline-primary {% if time_range == 'week' %}active{% endif %}">Dernière semaine</a>
+                <a href="{{ url_for('visualization.attack_details', type=attack_type, time_range='month') }}" class="btn btn-outline-primary {% if time_range == 'month' %}active{% endif %}">Dernier mois</a>
+            </div>
+        </div>
+    </div>
+    
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% elif not attack_details %}
+    <div class="alert alert-info">
+        Aucune donnée disponible pour cette période.
+    </div>
+    {% else %}
+    
+    <!-- Statistiques générales -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total des attaques</h5>
+                    <p class="card-text display-4">{{ attack_details.total_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Distribution des sévérités</h5>
+                </div>
+                <div class="card-body">
+                    {% if attack_details.severities and attack_details.severities.graph %}
+                        <div id="severity-chart"></div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée de sévérité disponible.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <!-- Top des adresses IP sources -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Top des adresses IP sources</h5>
+                </div>
+                <div class="card-body">
+                    {% if attack_details.source_ips and attack_details.source_ips.graph %}
+                        <div id="source-ip-chart"></div>
+                    {% elif attack_details.source_ips and attack_details.source_ips.ips %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Adresse IP</th>
+                                        <th>Nombre d'attaques</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in range(attack_details.source_ips.ips|length) %}
+                                    <tr>
+                                        <td>{{ attack_details.source_ips.ips[i] }}</td>
+                                        <td>{{ attack_details.source_ips.counts[i] }}</td>
+                                        <td>
+                                            <a href="{{ url_for('ip_management.index') }}?ip={{ attack_details.source_ips.ips[i] }}" class="btn btn-sm btn-primary">
+                                                Gérer
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée d'adresse IP source disponible.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top des adresses IP destinations -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Top des adresses IP destinations</h5>
+                </div>
+                <div class="card-body">
+                    {% if attack_details.destination_ips and attack_details.destination_ips.ips %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Adresse IP</th>
+                                        <th>Nombre d'attaques</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in range(attack_details.destination_ips.ips|length) %}
+                                    <tr>
+                                        <td>{{ attack_details.destination_ips.ips[i] }}</td>
+                                        <td>{{ attack_details.destination_ips.counts[i] }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée d'adresse IP destination disponible.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Distribution géographique -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Distribution géographique des attaques</h5>
+                </div>
+                <div class="card-body">
+                    {% if attack_details.source_countries and attack_details.source_countries.graph %}
+                        <div id="geo-chart"></div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée géographique disponible.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Exemples d'attaques -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Exemples d'attaques récentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if attack_details.examples %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>IP Source</th>
+                                        <th>IP Destination</th>
+                                        <th>Sévérité</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for example in attack_details.examples %}
+                                    <tr>
+                                        <td>{{ example.timestamp }}</td>
+                                        <td>{{ example.src_ip }}</td>
+                                        <td>{{ example.dest_ip }}</td>
+                                        <td>
+                                            <span class="badge {% if example.severity == 'Critical' %}bg-danger{% elif example.severity == 'High' %}bg-warning text-dark{% elif example.severity == 'Medium' %}bg-info text-dark{% else %}bg-success{% endif %}">
+                                                {{ example.severity }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal{{ loop.index }}">
+                                                Détails
+                                            </button>
+                                            <a href="{{ url_for('ip_management.index') }}?ip={{ example.src_ip }}" class="btn btn-sm btn-primary">
+                                                Gérer IP
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Modal pour les détails -->
+                                    <div class="modal fade" id="detailsModal{{ loop.index }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ loop.index }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="detailsModalLabel{{ loop.index }}">Détails de l'attaque</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <pre class="bg-light p-3"><code>{{ example.details | tojson(indent=2) }}</code></pre>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucun exemple d'attaque disponible.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if attack_details and attack_details.severities and attack_details.severities.graph %}
+            var severityData = {{ attack_details.severities.graph | safe }};
+            Plotly.newPlot('severity-chart', severityData.data, severityData.layout);
+        {% endif %}
+        
+        {% if attack_details and attack_details.source_ips and attack_details.source_ips.graph %}
+            var sourceIpData = {{ attack_details.source_ips.graph | safe }};
+            Plotly.newPlot('source-ip-chart', sourceIpData.data, sourceIpData.layout);
+        {% endif %}
+        
+        {% if attack_details and attack_details.source_countries and attack_details.source_countries.graph %}
+            var geoData = {{ attack_details.source_countries.graph | safe }};
+            Plotly.newPlot('geo-chart', geoData.data, geoData.layout);
+        {% endif %}
+        
+        // Redimensionnement des graphiques lors du redimensionnement de la fenêtre
+        window.addEventListener('resize', function() {
+            {% if attack_details and attack_details.severities and attack_details.severities.graph %}
+                Plotly.relayout('severity-chart', {
+                    'width': document.getElementById('severity-chart').offsetWidth
+                });
+            {% endif %}
+            
+            {% if attack_details and attack_details.source_ips and attack_details.source_ips.graph %}
+                Plotly.relayout('source-ip-chart', {
+                    'width': document.getElementById('source-ip-chart').offsetWidth
+                });
+            {% endif %}
+            
+            {% if attack_details and attack_details.source_countries and attack_details.source_countries.graph %}
+                Plotly.relayout('geo-chart', {
+                    'width': document.getElementById('geo-chart').offsetWidth
+                });
+            {% endif %}
+        });
+    });
+</script>
+{% endblock %}

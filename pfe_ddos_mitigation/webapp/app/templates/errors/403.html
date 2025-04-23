@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Erreur 403 - Accès refusé{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-container">
+                <h1 class="display-1 text-danger">403</h1>
+                <h2 class="mb-4">Accès refusé</h2>
+                <p class="lead mb-4">Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
+                <div class="d-flex justify-content-center">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-home me-2"></i>Retour au tableau de bord
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .error-container {
+        padding: 3rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .display-1 {
+        font-size: 6rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Erreur 404 - Page non trouvée{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-container">
+                <h1 class="display-1 text-primary">404</h1>
+                <h2 class="mb-4">Page non trouvée</h2>
+                <p class="lead mb-4">La page que vous recherchez n'existe pas ou a été déplacée.</p>
+                <div class="d-flex justify-content-center">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Retour au tableau de bord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .error-container {
+        padding: 3rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .display-1 {
+        font-size: 6rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}

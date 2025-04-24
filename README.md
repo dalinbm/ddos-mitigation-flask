@@ -165,7 +165,7 @@ Pour mettre à jour l'application, suivez ces étapes :
 
 ## Support
 
-Pour toute question ou problème, veuillez contacter l'équipe de support à l'adresse support@example.com.
+Pour toute question ou problème, veuillez contacter l'équipe de support à l'adresse dalinbm@gmail.com.
 
 ## Licence
 

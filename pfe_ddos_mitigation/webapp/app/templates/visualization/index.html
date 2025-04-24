@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Visualisation - Système de Mitigation DDoS{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Visualisation des Attaques DDoS</h2>
+    
+    <!-- Sélecteur de plage de temps -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Plage de temps</h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group w-100" role="group">
+                <a href="{{ url_for('visualization.index', time_range='hour') }}" class="btn btn-outline-primary {% if time_range == 'hour' %}active{% endif %}">Dernière heure</a>
+                <a href="{{ url_for('visualization.index', time_range='day') }}" class="btn btn-outline-primary {% if time_range == 'day' %}active{% endif %}">Dernier jour</a>
+                <a href="{{ url_for('visualization.index', time_range='week') }}" class="btn btn-outline-primary {% if time_range == 'week' %}active{% endif %}">Dernière semaine</a>
+                <a href="{{ url_for('visualization.index', time_range='month') }}" class="btn btn-outline-primary {% if time_range == 'month' %}active{% endif %}">Dernier mois</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Distribution des types d'attaques -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Distribution des types d'attaques</h5>
+                </div>
+                <div class="card-body">
+                    {% if attack_distribution and attack_distribution.graph %}
+                        <div id="attack-distribution-chart"></div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée disponible pour cette période.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Distribution des sévérités -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Distribution des sévérités</h5>
+                </div>
+                <div class="card-body">
+                    {% if severity_distribution and severity_distribution.graph %}
+                        <div id="severity-distribution-chart"></div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée disponible pour cette période.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Distribution géographique -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Distribution géographique des attaques</h5>
+                </div>
+                <div class="card-body">
+                    {% if geo_distribution and geo_distribution.graph %}
+                        <div id="geo-distribution-chart"></div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée disponible pour cette période.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Timeline des attaques -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Timeline des attaques</h5>
+                </div>
+                <div class="card-body">
+                    {% if timeline_data and timeline_data.graph %}
+                        <div id="timeline-chart"></div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucune donnée disponible pour cette période.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Détails des types d'attaques -->
+    {% if attack_distribution and attack_distribution.data and attack_distribution.data.labels %}
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Détails par type d'attaque</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Type d'attaque</th>
+                                    <th>Nombre</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in range(attack_distribution.data.labels|length) %}
+                                <tr>
+                                    <td>{{ attack_distribution.data.labels[i] }}</td>
+                                    <td>{{ attack_distribution.data.values[i] }}</td>
+                                    <td>
+                                        <a href="{{ url_for('visualization.attack_details', type=attack_distribution.data.labels[i], time_range=time_range) }}" class="btn btn-sm btn-primary">
+                                            Détails
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if attack_distribution and attack_distribution.graph %}
+            var attackDistributionData = {{ attack_distribution.graph | safe }};
+            Plotly.newPlot('attack-distribution-chart', attackDistributionData.data, attackDistributionData.layout);
+        {% endif %}
+        
+        {% if severity_distribution and severity_distribution.graph %}
+            var severityDistributionData = {{ severity_distribution.graph | safe }};
+            Plotly.newPlot('severity-distribution-chart', severityDistributionData.data, severityDistributionData.layout);
+        {% endif %}
+        
+        {% if geo_distribution and geo_distribution.graph %}
+            var geoDistributionData = {{ geo_distribution.graph | safe }};
+            Plotly.newPlot('geo-distribution-chart', geoDistributionData.data, geoDistributionData.layout);
+        {% endif %}
+        
+        {% if timeline_data and timeline_data.graph %}
+            var timelineData = {{ timeline_data.graph | safe }};
+            Plotly.newPlot('timeline-chart', timelineData.data, timelineData.layout);
+        {% endif %}
+        
+        // Redimensionnement des graphiques lors du redimensionnement de la fenêtre
+        window.addEventListener('resize', function() {
+            {% if attack_distribution and attack_distribution.graph %}
+                Plotly.relayout('attack-distribution-chart', {
+                    'width': document.getElementById('attack-distribution-chart').offsetWidth
+                });
+            {% endif %}
+            
+            {% if severity_distribution and severity_distribution.graph %}
+                Plotly.relayout('severity-distribution-chart', {
+                    'width': document.getElementById('severity-distribution-chart').offsetWidth
+                });
+            {% endif %}
+            
+            {% if geo_distribution and geo_distribution.graph %}
+                Plotly.relayout('geo-distribution-chart', {
+                    'width': document.getElementById('geo-distribution-chart').offsetWidth
+                });
+            {% endif %}
+            
+            {% if timeline_data and timeline_data.graph %}
+                Plotly.relayout('timeline-chart', {
+                    'width': document.getElementById('timeline-chart').offsetWidth
+                });
+            {% endif %}
+        });
+    });
+</script>
+{% endblock %}

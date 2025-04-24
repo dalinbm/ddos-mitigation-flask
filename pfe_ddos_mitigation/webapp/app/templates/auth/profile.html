@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Profil - Système de Mitigation DDoS{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Profil utilisateur</h4>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <div class="avatar-circle mb-3">
+                                <span class="avatar-initials">{{ current_user.username[0] | upper }}</span>
+                            </div>
+                            <h5>{{ current_user.username }}</h5>
+                            <p class="text-muted">{{ current_user.role | capitalize }}</p>
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="border-bottom pb-2 mb-3">Informations du compte</h5>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Nom d'utilisateur:</div>
+                                <div class="col-md-8">{{ current_user.username }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Email:</div>
+                                <div class="col-md-8">{{ current_user.email or 'Non défini' }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Rôle:</div>
+                                <div class="col-md-8">{{ current_user.role | capitalize }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5 class="border-bottom pb-2 mb-3">Changer le mot de passe</h5>
+                    <form method="post" action="{{ url_for('auth.profile') }}">
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Mot de passe actuel</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="current_password" name="current_password" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">Nouveau mot de passe</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            </div>
+                            <div class="form-text">Le mot de passe doit contenir au moins 6 caractères.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirmer le nouveau mot de passe</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Mettre à jour le mot de passe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: #007bff;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+    }
+    
+    .avatar-initials {
+        color: white;
+        font-size: 48px;
+        font-weight: bold;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validation du formulaire de changement de mot de passe
+        const form = document.querySelector('form');
+        const newPasswordInput = document.getElementById('new_password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        
+        form.addEventListener('submit', function(e) {
+            if (newPasswordInput.value.length < 6) {
+                e.preventDefault();
+                alert('Le nouveau mot de passe doit contenir au moins 6 caractères.');
+                return false;
+            }
+            
+            if (newPasswordInput.value !== confirmPasswordInput.value) {
+                e.preventDefault();
+                alert('Les nouveaux mots de passe ne correspondent pas.');
+                return false;
+            }
+            
+            return true;
+        });
+    });
+</script>
+{% endblock %}
